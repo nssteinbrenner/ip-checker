@@ -3,7 +3,7 @@
 import smtplib
 
 from fabric import Connection
-from email.mime.multipart import MIMEMultipart                                                                       
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 with open('config', 'r') as f:
@@ -33,27 +33,31 @@ with open('config', 'r') as f:
 
 targetstart = '	inet '
 
+
 def notifyMe(toaddr, fromaddr, password, pubip):
     msg = f'Your new public IP is: {pubip}'
     subj = 'Your public IP has changed'
-    message = MIMEMultipart()                                                                                        
-    message['From'] = fromaddr                                                                                       
-    message['To'] = toaddr                                                                                           
-    message['Subject'] = subj                                                                                        
-    message.attach(MIMEText(msg, 'plain'))                                                                           
-    server = smtplib.SMTP('smtp.gmail.com', 587)                                                                     
-    server.ehlo()                                                                                                    
-    server.starttls()                                                                                                
-    server.ehlo()                                                                                                    
-    server.login(fromaddr, password)                                                                                 
-    text = message.as_string()                                                                                       
+    message = MIMEMultipart()
+    message['From'] = fromaddr
+    message['To'] = toaddr
+    message['Subject'] = subj
+    message.attach(MIMEText(msg, 'plain'))
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.ehlo()
+    server.starttls()
+    server.ehlo()
+    server.login(fromaddr, password)
+    text = message.as_string()
     server.sendmail(fromaddr, toaddr, text)
 
+
 def startCon(hostname, username, port, password):
-    c = Connection(host=hostname, user=username, port=portnum, connect_kwargs={'password': password})
+    c = Connection(host=hostname, user=username, port=portnum,
+                   connect_kwargs={'password': password})
     result = c.run('ifconfig re0', hide='stdout').stdout.split('\n')
     c.close()
     return result
+
 
 def getPub(result):
     for line in result:
@@ -62,6 +66,7 @@ def getPub(result):
             pubip = text[1]
             return pubip
     return pubip
+
 
 def checkPub(pubip):
     with open('pub_ip', 'r+') as f:
@@ -72,6 +77,7 @@ def checkPub(pubip):
             f.truncate()
             for i in toaddr:
                 notifyMe(i, fromaddr, emailpass, pubip)
+
 
 result = startCon(hostname, username, portnum, password)
 pubip = getPub(result)
